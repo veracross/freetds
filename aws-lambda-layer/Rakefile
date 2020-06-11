@@ -1,0 +1,48 @@
+# frozen_string_literal: true
+
+require 'fileutils'
+
+BUILD_DIR = File.join(__dir__, 'build')
+DEFAULT_FREETDS_VERSION = '1.1.6'
+
+desc 'Build FreeTDS AWS Lambda Layer'
+task :build, [:freetds_version] do |_t, args|
+  version = args[:freetds_version] || ENV['FREETDS_VERSION'] || DEFAULT_FREETDS_VERSION
+  image_name = "veracross/freetds:#{version}"
+
+  FileUtils.rm_r BUILD_DIR, force: true
+  FileUtils.mkdir_p BUILD_DIR
+
+  system("
+    docker build \
+      --build-arg FREETDS_VERSION=#{version} \
+      -t #{image_name} .
+  ")
+
+  system("docker push #{image_name}")
+
+  system("
+    docker run --rm \
+    -v \"${PWD}/build:/build\" \
+    #{image_name} \
+    sh -c 'cp /var/task/build/freetds-layer-#{version}.zip /build'
+  ")
+end
+
+desc 'Build FreeTDS AWS Lambda Layer'
+task :deploy, [:freetds_version] => [:build] do |_t, args|
+  version = args[:freetds_version] || ENV['FREETDS_VERSION'] || DEFAULT_FREETDS_VERSION
+
+  system("
+    aws lambda publish-layer-version \
+    --layer-name 'freetds-layer' \
+    --description 'FreeTDS #{version} Layer' \
+    --region 'us-east-1' \
+    --zip-file \"fileb://$(pwd)/build/freetds-layer-#{version}.zip\"
+  ")
+end
+
+desc 'List available FreeTDS AWS Lambda Layers'
+task :list_layers do |_t, args|
+  system('aws lambda list-layers --region us-east-1')
+end
