@@ -35,7 +35,7 @@ task :deploy, [:freetds_version] => [:build] do |_t, args|
 
   system("
     aws lambda publish-layer-version \
-    --layer-name 'freetds-layer' \
+    --layer-name 'freetds' \
     --description 'FreeTDS #{version} Layer' \
     --region 'us-east-1' \
     --zip-file \"fileb://$(pwd)/build/freetds-layer-#{version}.zip\"
