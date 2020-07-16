@@ -8,7 +8,7 @@ DEFAULT_FREETDS_VERSION = '1.1.6'
 desc 'Build FreeTDS AWS Lambda Layer'
 task :build, [:freetds_version] do |_t, args|
   version = args[:freetds_version] || ENV['FREETDS_VERSION'] || DEFAULT_FREETDS_VERSION
-  image_name = "veracross/freetds:#{version}"
+  image_name = "veracross/freetds:aws-lambda-layer-#{version}"
 
   FileUtils.rm_r BUILD_DIR, force: true
   FileUtils.mkdir_p BUILD_DIR
