@@ -4,6 +4,7 @@ require 'fileutils'
 
 BUILD_DIR = File.join(__dir__, 'build')
 DEFAULT_FREETDS_VERSION = '1.1.6'
+DEFAULT_AWS_REGION = 'us-east-1'
 
 desc 'Build FreeTDS AWS Lambda Layer'
 task :build, [:freetds_version] do |_t, args|
@@ -29,20 +30,23 @@ task :build, [:freetds_version] do |_t, args|
   ")
 end
 
-desc 'Build FreeTDS AWS Lambda Layer'
+desc 'Build and deploy FreeTDS AWS Lambda Layer'
 task :deploy, [:freetds_version] => [:build] do |_t, args|
   version = args[:freetds_version] || ENV['FREETDS_VERSION'] || DEFAULT_FREETDS_VERSION
+  aws_region = args[:aws_region] || ENV['AWS_REGION'] || DEFAULT_AWS_REGION
 
   system("
     aws lambda publish-layer-version \
     --layer-name 'freetds' \
     --description 'FreeTDS #{version} Layer' \
-    --region 'us-east-1' \
+    --region '#{aws_region}' \
     --zip-file \"fileb://$(pwd)/build/freetds-layer-#{version}.zip\"
   ")
 end
 
 desc 'List available FreeTDS AWS Lambda Layers'
 task :list_layers do |_t, args|
-  system('aws lambda list-layers --region us-east-1')
+  aws_region = args[:aws_region] || ENV['AWS_REGION'] || DEFAULT_AWS_REGION
+
+  system("aws lambda list-layers --region #{aws_region}")
 end
