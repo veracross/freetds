@@ -30,7 +30,7 @@ task :build, [:freetds_version] do |_t, args|
   ")
 end
 
-desc 'Build FreeTDS AWS Lambda Layer'
+desc 'Build and deploy FreeTDS AWS Lambda Layer'
 task :deploy, [:freetds_version] => [:build] do |_t, args|
   version = args[:freetds_version] || ENV['FREETDS_VERSION'] || DEFAULT_FREETDS_VERSION
   aws_region = args[:aws_region] || ENV['AWS_REGION'] || DEFAULT_AWS_REGION
